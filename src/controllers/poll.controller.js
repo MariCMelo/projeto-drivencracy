@@ -19,30 +19,25 @@ export async function createPoll(req, res) {
       expireAt: expirationDate
     };
 
-    await db.collection("polls").insertOne(poll);
+    await db
+      .collection("polls")
+      .insertOne(poll);
 
+    console.log(poll)
     res.status(201).send(poll);
   } catch (err) {
     res.status(500).send(err.message);
   }
 }
-
 export async function getAllPolls(req, res) {
   try {
-    const pollId = ObjectId(req.params.pollId);
+    const polls = await db.collection("polls").find().toArray();
 
-    const poll = await db.collection("polls").findOne({ _id: pollId });
-
-    if (!poll) {
-      return res.status(404).json({ error: 'A pesquisa não foi encontrada.' });
-    }
-
-    res.json(poll);
+    res.json(polls);
   } catch (err) {
     res.status(500).send(err.message);
   }
 }
-
 export async function getChoicesByPollId(req, res) {
   const { id } = req.params;
   try {
@@ -83,20 +78,20 @@ export async function getPollResult(req, res) {
       .find({ pollId: id })
       .toArray();
 
-      let maxVotes = 0;
-      let winningChoice = null;
-      
-      choices.forEach(choice => {
-        if (choice.votes > maxVotes) {
-          maxVotes = choice.votes;
-          winningChoice = choice;
-        }
-      });
-      
-      const result = {
-        title: winningChoice ? winningChoice.title : null,
-        votes: maxVotes
-      };
+    let maxVotes = 0;
+    let winningChoice = null;
+
+    choices.forEach(choice => {
+      if (choice.votes > maxVotes) {
+        maxVotes = choice.votes;
+        winningChoice = choice;
+      }
+    });
+
+    const result = {
+      title: winningChoice ? winningChoice.title : null,
+      votes: maxVotes
+    };
 
     const pollResult = {
       _id: poll._id,
