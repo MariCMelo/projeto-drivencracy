@@ -45,6 +45,7 @@ export async function getChoicesByPollId(req, res) {
       .collection("polls")
       .findOne({ _id: new ObjectId(id) });
 
+
     if (!poll) {
       return res.status(404).json({ error: 'Enquete não encontrada.' });
     }
@@ -60,48 +61,32 @@ export async function getChoicesByPollId(req, res) {
     res.status(500).send(err.message);
   }
 }
-
 export async function getPollResult(req, res) {
   const { id } = req.params;
 
+  const poll = await db
+    .collection("polls")
+    .findOne({ _id: new ObjectId(id) })
+
   try {
-    const poll = await db
-      .collection("polls")
-      .findOne({ _id: ObjectId(id) });
-
-    if (!poll) {
-      return res.status(404).json({ error: 'Enquete não encontrada.' });
-    }
-
-    const choices = await db
+    const result = await db
       .collection("choices")
       .find({ pollId: id })
-      .toArray();
+      .sort({ votes: -1 })
+      .toArray()
 
-    let maxVotes = 0;
-    let winningChoice = null;
-
-    choices.forEach(choice => {
-      if (choice.votes > maxVotes) {
-        maxVotes = choice.votes;
-        winningChoice = choice;
-      }
-    });
-
-    const result = {
-      title: winningChoice ? winningChoice.title : null,
-      votes: maxVotes
-    };
-
-    const pollResult = {
-      _id: poll._id,
+    const finalResult =
+    {
+      _id: result[0]._id,
       title: poll.title,
       expireAt: poll.expireAt,
-      result: result
-    };
+      result: {
+        title: result[0].title,
+        votes: result[0].votes
+      }
+    }
 
-    res.json(pollResult);
-
+    res.json(finalResult);
   } catch (err) {
     res.status(500).send(err.message);
   }

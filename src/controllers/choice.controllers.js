@@ -35,7 +35,9 @@ export async function createChoice(req, res) {
             pollId,
         };
 
-        await db.collection("choices").insertOne(choice);
+        await db
+            .collection("choices")
+            .insertOne(choice);
 
         res.status(201).json(choice);
 
@@ -48,21 +50,25 @@ export async function voteOnChoice(req, res) {
     const { id } = req.params;
 
     try {
-        const poll = await db
-            .collection("polls")
-            .findOne({ _id: new ObjectId(id) });
+        const result = await db.collection("choices").findOneAndUpdate(
+            { _id: new ObjectId(id) },
+            { $inc: { votes: 1 } },
+            { returnOriginal: false }
+        );
 
-        if (!poll) {
-            return res.status(404).json({ error: 'Enquete não encontrada.' });
+        console.log(result)
+
+        if (!result.value) {
+            return res.status(404).json({ error: 'Opção não encontrada.' });
         }
 
-        const choices = await db
-            .collection("choices")
-            .find({ pollId: id }).toArray();
-
-        res.json(choices);
+        res.sendStatus(201);
 
     } catch (err) {
         res.status(500).send(err.message);
     }
 }
+
+
+
+
