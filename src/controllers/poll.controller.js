@@ -43,7 +43,7 @@ export async function getChoicesByPollId(req, res) {
   try {
     const poll = await db
       .collection("polls")
-      .findOne({ _id: ObjectId(id) });
+      .findOne({ _id: new ObjectId(id) });
 
     if (!poll) {
       return res.status(404).json({ error: 'Enquete não encontrada.' });
