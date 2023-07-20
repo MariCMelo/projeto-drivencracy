@@ -50,7 +50,7 @@ export async function voteOnChoice(req, res) {
     try {
         const poll = await db
             .collection("polls")
-            .findOne({ _id: ObjectId(id) });
+            .findOne({ _id: new ObjectId(id) });
 
         if (!poll) {
             return res.status(404).json({ error: 'Enquete não encontrada.' });
@@ -58,12 +58,11 @@ export async function voteOnChoice(req, res) {
 
         const choices = await db
             .collection("choices")
-            .find({ pollId: id })
-            .toArray();
+            .find({ pollId: id }).toArray();
 
         res.json(choices);
 
     } catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
